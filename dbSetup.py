@@ -1,4 +1,5 @@
 import sqlite3
+import os
 import zipfile
 import pandas as pd
 
@@ -9,6 +10,8 @@ def dbSetup():
 
     # read csv into dataframe
     df = pd.read_csv("archive/nba_player-box_stats.csv")
+
+    os.remove("archive/nba_player-box_stats.csv")
 
     # clean column names
     df.columns = df.columns.str.strip()
