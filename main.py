@@ -4,6 +4,8 @@ import time
 import pandas as pd
 import sqlite3
 import dbSetup
+import teamdata as team
+import playerdata as player
 
 if __name__ == '__main__':
     startTime = time.time()
@@ -22,6 +24,9 @@ if __name__ == '__main__':
     #print setup time for user
     setupTime = time.time() - startTime
     print('[INFO] Database setup completed in {:.2} seconds.\n'.format(setupTime))
-    
+
+    # ---------- TESTING ----------
+    #teamYear = team.getTeamYear(connection,"MIA","2003")
+    #os.remove("nba")
     
 
