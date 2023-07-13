@@ -4,8 +4,8 @@ import time
 import pandas as pd
 import sqlite3
 import dbSetup
-import teamdata as team
-import playerdata as player
+import teams as team
+import players as player
 
 if __name__ == '__main__':
     startTime = time.time()
@@ -18,7 +18,7 @@ if __name__ == '__main__':
             print('[ERROR] Unable to setup database.')
             sys.exit()
     else:
-        connection = sqlite3.Connection('nba')
+        connection = sqlite3.Connection('nba.sqlite')
         print('[INFO] Database file already exists.\n')
     
     #print setup time for user
