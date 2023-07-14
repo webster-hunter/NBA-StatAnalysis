@@ -1,17 +1,18 @@
 import os
 import sys
 import time
-import pandas as pd
+import pandas
 import sqlite3
 import dbSetup
-import teams as team
-import players as player
+import teams
+import players
+import referees
 
 if __name__ == '__main__':
     startTime = time.time()
 
     # setup database file
-    if not os.path.isfile('nba'):
+    if not os.path.isfile('nba.sqlite'):
         try:
             connection = dbSetup.dbSetup()
         except:
@@ -24,6 +25,8 @@ if __name__ == '__main__':
     #print setup time for user
     setupTime = time.time() - startTime
     print('[INFO] Database setup completed in {:.2} seconds.\n'.format(setupTime))
+
+    referees.RefereeTeamRecord(connection)
 
     # ---------- TESTING ----------
     #teamYear = team.getTeamYear(connection,"MIA","2003")
