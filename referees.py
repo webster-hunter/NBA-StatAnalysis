@@ -4,8 +4,39 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import statistics
+import datetime
 
-def CreateTeamRecord(conn):
+def CreateTeamRecord(conn,startYear=None,endYear=None,gameType=None):
+    # translate gameType params to game type filters
+    for type in gameType:
+        match gameType:
+            case 'pre':
+                gameType[type] = 'Pre Seson'
+            case 'reg':
+                gameType[type] = 'Regular Season'
+            case 'post':
+                gameType[type] = 'Playoffs'
+            case 'asg':
+                gameType[type] = 'All Star'
+            case _:
+                print('[ERROR] Invalid Game Type Filter')
+    
+    # create timestamp for start date
+    dt = datetime(
+        year = startYear,
+        month = 8,
+        day = 1
+    )
+    dateStart = int(dt.timestamp())
+
+    # create timestamp for end date
+    dt = datetime(
+        year = endYear,
+        month = 8,
+        day = 1
+    )
+    dateEnd = int(dt.timestamp())
+
     # data frame will be composed of referee id/name, team, and officiating record 
     records = pd.DataFrame(columns=['ref_name','team','W','L','rate'])
     cols = list(records.columns)
@@ -27,10 +58,20 @@ def CreateTeamRecord(conn):
 
         # count game records found
         count = 0
+        game_info = []
         for j in gameIDs:
             # query game result information using game id
-            cursor.execute(f"SELECT team_abbreviation_home, team_abbreviation_away, wl_home FROM game WHERE game_id='{j[0]}'")
-            game_info = cursor.fetchall()
+            if (gameType == None):
+                cursor.execute(f"SELECT team_abbreviation_home, team_abbreviation_away, wl_home FROM game WHERE game_id='{j[0]}'")
+                game_info = cursor.fetchall()
+            else:
+                for x in gameType:
+                    cursor.execute(f"SELECT team_abbreviation_home, team_abbreviation_away, wl_home FROM game " + 
+                                    "WHERE game_id='{j[0]}' "
+                                    "AND gameType = {x}")
+                    temp = cursor.fetchall()
+                    game_info = game_info + temp
+            
 
             # iterate thru game info to tally win-loss record per team
             # note for iter: 0 = home team, 1 = away team
