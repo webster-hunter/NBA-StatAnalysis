@@ -16,9 +16,15 @@
 <h2>Updates</h2>
 <h3>July 10, 2023:</h3>
 <p>Project inception. Currently only features database setup using the box score dataset (1945 - 2023).</p>
+
 <h3>July 17, 2023:</h3>
 <ul>
   <li>Refactored to use Wyatt Walsh's kaggle database. (https://www.kaggle.com/datasets/wyattowalsh/basketball?resource=download)</li>
   <li>Completed first iteration of RefereeTeamRecords, will need to optimize in the future as it's complexity is poor at this point.</li>
 </ul>
 
+<h3>July 18, 2023:</h3>
+<ul>
+  <li>Enabled filtering by games officiated and win rate</li>
+  <li>Initial work began on visualization</li>
+</ul>
