@@ -1,7 +1,7 @@
 import os
 import sys
 import time
-import string
+import pandas as pd
 import sqlite3
 import dbSetup
 import referees
@@ -28,15 +28,24 @@ if __name__ == '__main__':
     startTime = time.time()
 
     # create referee record csv file if non-existent or out of date 
-    if not os.path.isfile('refereeTeamRecord'):
-        referees.CreateRefereeTeamRecord(connection)
+    if not os.path.isfile('refereeTeamRecord.csv'):
+        refTeamRecord = referees.CreateTeamRecord(connection)
+    # retrieve referee record df if csv exists
     else: 
-        sel = input("\n[INPUT] Update file refereeTeamRecord.csv? (y/n)")
-        if (sel.tolower() == 'y'):
-            referees.CreateRefereeTeamRecord(connection)
+        refTeamRecord = pd.read_csv("RefereeTeamRecord.csv", usecols = ['ref_name', 'team', 'W', 'L', 'rate'])
 
     # output execution time
     setupTime = time.time() - startTime
     print('\n[INFO] Referee team records compiled in {:.2} seconds.\n'.format(operationTime))
+
+    # filter games officiated and sort by win-rate
+    refTeamRecord = referees.GetHighestRates(refTeamRecord)
+
+    # display histogram of team win rates per official 
+    # referees.Histogram(refTeamRecord)
+
+    referees.CumSumHistogram(refTeamRecord)
+
+
     
 

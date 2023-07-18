@@ -1,12 +1,13 @@
 import sqlite3
 import pandas as pd
-import tabulate
-import time
 import os
+import matplotlib.pyplot as plt
+import numpy as np
+import statistics
 
-def CreateRefereeTeamRecord(conn):
+def CreateTeamRecord(conn):
     # data frame will be composed of referee id/name, team, and officiating record 
-    records = pd.DataFrame(columns=['ref_name','team','W','L'])
+    records = pd.DataFrame(columns=['ref_name','team','W','L','rate'])
     cols = list(records.columns)
     cursor = conn.cursor()
 
@@ -31,38 +32,92 @@ def CreateRefereeTeamRecord(conn):
             cursor.execute(f"SELECT team_abbreviation_home, team_abbreviation_away, wl_home FROM game WHERE game_id='{j[0]}'")
             game_info = cursor.fetchall()
 
-            ### TESTING
+            # iterate thru game info to tally win-loss record per team
+            # note for iter: 0 = home team, 1 = away team
             for iter in [0,1]:
+                # search for existing record, empty if not found
                 new_rec = records.loc[(records['ref_name'] == refName[0][0] + " " + refName[0][1]) & (records['team'] == game_info[0][iter])]
 
+                # if empty, create new row
                 if (new_rec.empty):
                     if(game_info[0][2] == 'W'):
-                        new_rec = {'ref_name': refName[0][0] + " " + refName[0][1],'team': game_info[0][iter],'W': 1,'L': 0}
+                        new_rec = {'ref_name': refName[0][0] + " " + refName[0][1],'team': game_info[0][iter],'W': 1,'L': 0, 'rate': 1.000}
                     else: 
-                        new_rec = {'ref_name': refName[0][0] + " " + refName[0][1],'team': game_info[0][iter],'W': 0,'L': 1}
-
+                        new_rec = {'ref_name': refName[0][0] + " " + refName[0][1],'team': game_info[0][iter],'W': 0,'L': 1, 'rate': 0.000}
+                    
+                    # add new row to records
                     records = pd.concat([records, pd.DataFrame([new_rec])], ignore_index=True)
                 else:
                     if(game_info[0][2] == 'W'):
-                        #new_rec['W'] += 1
-                        #new_rec.loc[0, 'W'] += 1
                         new_rec.loc[:,'W'] += 1
                     else: 
-                        #new_rec['L'] += 1
-                        #new_rec.loc[0, 'L'] += 1
                         new_rec.loc[:,'L'] += 1
+
+                    new_rec.loc[:,'rate'] = new_rec.loc[:,'W'] / (new_rec.loc[:,'W'] + new_rec.loc[:,'L'])
 
                     records.loc[records.ref_name.isin(new_rec.ref_name) & records.team.isin(new_rec.team), cols] = new_rec[cols]
 
             count = count + 1
-
-            ### TESTING
-            # if(count > 1000):
-            #     print(records.to_markdown())
-            #     time.sleep(10)
         
         print('[INFO] Official: {}, Game Records Logged: {}.'.format(refName[0][0] + " " + refName[0][1], count))
 
+    # write result to csv
     records.to_csv(os.getcwd()+'\\refereeTeamRecord.csv', index = True)
-   
-   
+
+    # return dataframe
+    return records
+
+def GetHighestRates(df):
+    filtered = df.query('(W + L) > 20')
+    df = filtered.sort_values(by=['rate'], ascending = False)
+    #print(df.to_markdown())
+
+    return df
+
+def Histogram(df):
+    rates = df['rate'].to_list()
+
+    plt.hist(rates, bins=20)
+
+    plt.xlabel('Win Rate')
+    plt.ylabel('Occurrence')
+    plt.title('Team Win Rate Per Official Histogram')
+    plt.grid(True)
+
+    plt.show()
+
+def CumSumHistogram(df):
+    rates = df['rate'].to_list()
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+
+    sigma = statistics.stdev(rates)
+    mu = 0.5
+    n_bins = 100
+
+    # plot the cumulative histogram
+    n, bins, patches = ax.hist(rates, n_bins, density=True, histtype='step',
+                            cumulative=True, label='Empirical')
+
+    # Add a line showing the expected distribution.
+    y = ((1 / (np.sqrt(2 * np.pi) * sigma)) *
+        np.exp(-0.5 * (1 / sigma * (bins - mu))**2))
+    y = y.cumsum()
+    y /= y[-1]
+
+    ax.plot(bins, y, 'k--', linewidth=1.5, label='Theoretical')
+
+    # tidy up the figure
+    ax.grid(True)
+    ax.legend(loc='right')
+    ax.set_title('Cumulative Step Histogram')
+    ax.set_xlabel('Team Win Rate Per Official')
+    ax.set_ylabel('Likelihood of Occurrence')
+
+    plt.show()
+
+
+
+    
+
+
