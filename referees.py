@@ -67,10 +67,9 @@ def CreateTeamRecord(conn):
     # return dataframe
     return records
 
-def GetHighestRates(df):
-    filtered = df.query('(W + L) > 20')
-    df = filtered.sort_values(by=['rate'], ascending = False)
-    #print(df.to_markdown())
+def GetHighestRates(df,minGames,asc):
+    filtered = df.query('(W + L) > '+ minGames)
+    df = filtered.sort_values(by=['rate'], ascending = asc)
 
     return df
 

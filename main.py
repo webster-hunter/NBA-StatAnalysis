@@ -39,7 +39,8 @@ if __name__ == '__main__':
     print('\n[INFO] Referee team records compiled in {:.2} seconds.\n'.format(operationTime))
 
     # filter games officiated and sort by win-rate
-    refTeamRecord = referees.GetHighestRates(refTeamRecord)
+    # params: dataframe, min games, ascending/descending
+    refTeamRecord = referees.GetHighestRates(refTeamRecord,20,False)
 
     # display histogram of team win rates per official 
     # referees.Histogram(refTeamRecord)
