@@ -3,7 +3,7 @@ import sys
 import time
 import pandas as pd
 import sqlite3
-import dbSetup
+import zipfile
 import referees
 
 if __name__ == '__main__':
@@ -14,7 +14,15 @@ if __name__ == '__main__':
     # setup database file if non-existent
     if not os.path.isfile('nba.sqlite'):
         try:
-            connection = dbSetup.dbSetup()
+            with zipfile.ZipFile("archive/nba_player-box_stats.zip","r") as zipObj:
+                listOfFileNames = zipObj.namelist()
+
+            for fileName in listOfFileNames:
+                if fileName.endswith('.sqlite'):
+                    zipObj.extract(fileName)
+
+            #connect to SQLite server
+            connection = sqlite3.connect("nba.sqlite")
         except:
             print('[ERROR] Unable to setup database.')
             sys.exit()
