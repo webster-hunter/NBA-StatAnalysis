@@ -24,19 +24,19 @@ def CreateTeamRecord(conn,startYear=None,endYear=None,gameType=None,minGames=Non
     # translate gameType params to game type filters
     if (gameType != None):
         for i, type in enumerate(gameType):
-            if(type == "pre") :
+            if(type.tolower() == "pre") :
                 gameType[i] = 'Pre Season'
-            elif(type == "reg"):
+            elif(type.tolower() == "reg"):
                 gameType[i] = 'Regular Season'
-            elif(type == "post"):
+            elif(type.tolower() == "post"):
                 gameType[i] = 'Playoffs'
-            elif(type == "asg"):
+            elif(type.tolower() == "asg"):
                 gameType[i] = 'All Star'
             else:
-                print('[ERROR] Invalid Game Type Filter')
+                print(f'[ERROR] Invalid game type filter {gameType} has been')
                 del gameType[i]
-    
-        print("[SETUP] Game Filters: "+str(gameType))
+
+        print("[FILTER] Game Types: "+str(gameType))
     
     # create timestamp for start date
     if (startYear != None):
@@ -51,7 +51,7 @@ def CreateTeamRecord(conn,startYear=None,endYear=None,gameType=None,minGames=Non
     # print setup notification for date range
     start = str(dateStart.year) if startYear is not None else "1946"
     end = str(dateEnd.year) if endYear is not None else "Present"
-    print(f"[SETUP] Season Range: {start} - {end}\n")
+    print(f"[FILTER] Season Range: {start} - {end}\n")
     
     # simplest form of the query
     query = (
