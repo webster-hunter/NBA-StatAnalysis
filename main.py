@@ -5,6 +5,7 @@ import pandas as pd
 import sqlite3
 import zipfile
 import referees
+from display import main_menu
 
 if __name__ == '__main__':
     print("\033c", end='')
@@ -30,33 +31,20 @@ if __name__ == '__main__':
         connection = sqlite3.Connection('nba.sqlite')
         print('[SETUP] Database file already exists.')
     
-    # print setup time for user
+    # print database setup time
     operationTime = time.time() - startTime
     print('[TIMER] Database setup completed in {:.2} seconds.\n'.format(operationTime))
 
-    referees.CreateTeamRecord(conn=connection,minGames=20)
+    main_menu(conn = connection)
 
-    #---------------------------------------
-    # # create referee record csv file if non-existent or out of date 
-    # if not os.path.isfile('refereeTeamRecord.csv'):
-    #     refTeamRecord = referees.CreateTeamRecord(connection,gameType=['reg'])
-    # # retrieve referee record df if csv exists
-    # else: 
-    #     refTeamRecord = pd.read_csv("RefereeTeamRecord.csv", usecols = ['ref_name', 'team', 'W', 'L', 'rate'])
+    # print(f"[FILTER] Game Type: {gameType}")
+    # print(f"[FILTER] Min Games: {minGames}")
 
-    # # output execution time
-    # setupTime = time.time() - operationTime
-    # print('\n[INFO] Referee team records compiled in {:.2} seconds.\n'.format(operationTime))
+    # refTeamRecord = referees.CreateTeamRecord(conn=connection,startYear=startYear,endYear=endYear,minGames=minGames)
 
-    # # filter games officiated and sort by win-rate
-    # # params: dataframe, min games, ascending/descending
-    # refTeamRecord = referees.GetHighestRates(refTeamRecord,20,False)
-
-    # # display histogram of team win rates per official 
+    # display histogram of team win rates per official 
     # referees.Histogram(refTeamRecord)
 
-    # # display cumulative sum histogram
-    # #referees.CumSumHistogram(refTeamRecord)
 
 
     
