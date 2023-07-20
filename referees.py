@@ -96,12 +96,6 @@ def CreateTeamRecord(conn,startYear=None,endYear=None,gameType=None,minGames=Non
     return records
 
 
-def SortHighestRates(df,minGames,asc):
-    filtered = df.query('(W + L) > '+ str(minGames))
-    df = filtered.sort_values(by=['rate'], ascending = asc)
-
-    return df
-
 def Histogram(df):
     rates = df['rate'].to_list()
 
