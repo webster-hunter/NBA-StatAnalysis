@@ -4,10 +4,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import statistics
 import datetime
+import time
 
-def TeamRecordOPT(conn,startYear=None,endYear=None,gameType=None):
+def CreateTeamRecord(conn,startYear=None,endYear=None,gameType=None,minGames=None):
     """
-    [V2] Optimized version of algorithm used to obtain per-team records for officials
+    [V3] Optimized version of algorithm used to obtain per-team records for officials
 
     Parameters:
     conn: SQLite database connection
@@ -18,6 +19,7 @@ def TeamRecordOPT(conn,startYear=None,endYear=None,gameType=None):
     Returns:
     records: dataframe containing every recorded official's per-team record
     """
+    startTime = time.time()
 
     # translate gameType params to game type filters
     if (gameType != None):
@@ -34,214 +36,65 @@ def TeamRecordOPT(conn,startYear=None,endYear=None,gameType=None):
                 print('[ERROR] Invalid Game Type Filter')
                 del gameType[i]
     
-        print("[SETUP] Game Filters: "+str(gameType)+"\n")
+        print("[SETUP] Game Filters: "+str(gameType))
     
     # create timestamp for start date
     if (startYear != None):
-        dt = datetime.datetime(
-            year = startYear,
-            month = 8,
-            day = 1
-        )
-        dateStart = int(dt.timestamp())
+        dateStart = datetime.datetime(startYear,8,1)
+        # dateStart = int(dt.timestamp())
 
     # create timestamp for end date
     if (startYear != None):
-        dt = datetime(
-            year = endYear,
-            month = 8,
-            day = 1
-        )
-        dateEnd = int(dt.timestamp())
+        dateEnd = datetime.datetime(endYear,8,1)
+        # dateEnd = int(dt.timestamp())
 
-    cursor = conn.cursor()
-
-    result = []
-    if gameType is not None:
-        for t in gameType:
-            query = (
-                f"SELECT officials.first_name, officials.last_name, "
-                f"game.team_abbreviation_home, game.team_abbreviation_away, "
-                f"game.wl_home, game.season_type "
-                f"FROM game "
-                f"INNER JOIN officials ON game.game_id = officials.game_id "
-                f"WHERE game.season_type='{t}' "
-            )
-
-            cursor.execute(query)
-            temp = cursor.fetchall()
-            result = result + temp
-    else:
-        query = (
-            f"SELECT officials.first_name, officials.last_name, "
-            f"game.team_abbreviation_home, game.team_abbreviation_away, "
-            f"game.wl_home, game.season_type "
+    # print setup notification for date range
+    start = str(dateStart.year) if startYear is not None else "1946"
+    end = str(dateEnd.year) if endYear is not None else "Present"
+    print(f"[SETUP] Season Range: {start} - {end}\n")
+    
+    # simplest form of the query
+    query = (
+            f"SELECT officials.first_name || ' ' || officials.last_name as ref_name, "
+            f"game.team_abbreviation_home as team, "
+            f"COUNT(case when game.wl_home='W' then 1 else null end) as W, "
+            f"COUNT(case when game.wl_home='L' then 1 else null end) as L "
             f"FROM game "
             f"INNER JOIN officials ON game.game_id = officials.game_id "
         )
-        
-        cursor.execute(query)
-        result = cursor.fetchall()
-
-    count = len(result)
-
-    records = pd.DataFrame(columns=['ref_name','team','W','L','rate'])
-    cols = list(records.columns)
-
-    for i, row in enumerate(result):
-        # Calculate progress and update progress bar every 1000 iterations
-        if i % 50 == 0 or i == count-1:  # also update for the last element
-            progress = (i+1) / count
-
-            # Create progress bar
-            bar_length = 50  # Length of the progress bar
-            filled_length = int(progress * bar_length)
-            if filled_length > 0:
-                moving_part = i % filled_length
-                bar = "#" * moving_part + " " + "#" * (filled_length - moving_part - 1) + " " * (bar_length - filled_length)
-            else:
-                bar = " " * bar_length
-
-            # Print progress bar
-            print("\rProgress: [{0}] {1:.1f}%".format(bar, progress * 100), end='', flush=True)
-
-
-        # for each row, add the result for the home team (index 2) and the away team (index 3)
-        for index in [2,3]:
-            refName =  row[0] + " " + row[1]
-            new_rec = records.loc[(records['ref_name'] == refName) & (records['team'] == row[index])]
-
-            # if empty, create new row
-            # since the 4th entry is home team win/loss, we can narrow down our conditional
-            if (new_rec.empty):
-                if((row[4] == 'W' and index == 2) or (row[4] == 'L' and index == 3)):
-                    new_rec = {'ref_name': refName,'team': row[index],'W': 1,'L': 0, 'rate': 1.000}
-                else: 
-                    new_rec = {'ref_name': refName,'team': row[index],'W': 0,'L': 1, 'rate': 0.000}
-
-                # add new row to records
-                records = pd.concat([records, pd.DataFrame([new_rec])], ignore_index=True)
-            else:
-                if((row[4] == 'W' and index == 2) or (row[4] == 'L' and index == 3)):
-                    new_rec.loc[:,'W'] += 1
-                else: 
-                    new_rec.loc[:,'L'] += 1
-
-                new_rec.loc[:,'rate'] = new_rec.loc[:,'W'] / (new_rec.loc[:,'W'] + new_rec.loc[:,'L'])
-
-                records.loc[records.ref_name.isin(new_rec.ref_name) & records.team.isin(new_rec.team), cols] = new_rec[cols]
-
-    # write result to csv
-    records.to_csv(os.getcwd()+'\\refereeTeamRecord.csv', index = True)
-
-    # return dataframe
-    return records
-
-
-
-
-#-------------------------------------------------------------------------
-
-def CreateTeamRecord(conn,startYear=None,endYear=None,gameType=None):
-    # translate gameType params to game type filters
-    for i, type in enumerate(gameType):
-        if(type == "pre") :
-            gameType[i] = 'Pre Season'
-        elif(type == "reg"):
-            gameType[i] = 'Regular Season'
-        elif(type == "post"):
-            gameType[i] = 'Playoffs'
-        elif(type == "asg"):
-            gameType[i] = 'All Star'
-        else:
-            print('[ERROR] Invalid Game Type Filter')
-            del gameType[i]
-
-    if (gameType != None):
-        print("[SETUP] Game Filters: "+str(gameType)+"\n")
     
-    # create timestamp for start date
-    if (startYear != None):
-        dt = datetime.datetime(
-            year = startYear,
-            month = 8,
-            day = 1
-        )
-        dateStart = int(dt.timestamp())
+    # append game types if passed
+    if gameType is not None:
+        gameType = [f"'{_}'" for _ in gameType]
+        query += f" WHERE game.season_type IN ({','.join(gameType)}) " if "WHERE" not in query else f" AND game.season_type IN ({','.join(gameType)}) "
 
-    # create timestamp for end date
-    if (startYear != None):
-        dt = datetime(
-            year = endYear,
-            month = 8,
-            day = 1
-        )
-        dateEnd = int(dt.timestamp())
+    # append starting year if specified
+    if startYear is not None:
+        query += f" WHERE game.game_date > '{dateStart}' " if "WHERE" not in query else f" AND game.game_date > '{dateStart}' "
 
-    # data frame will be composed of referee id/name, team, and officiating record 
-    records = pd.DataFrame(columns=['ref_name','team','W','L','rate'])
-    cols = list(records.columns)
-    cursor = conn.cursor()
+    # append ending year if specified
+    if endYear is not None:
+        query += f" WHERE game.game_date < '{dateEnd}'" if "WHERE" not in query else f" AND game.game_date < '{dateEnd}'"
 
-    # query distinct officials
-    cursor.execute("SELECT DISTINCT official_id FROM officials")
-    result = cursor.fetchall()
+    # group results by referee name and team
+    query += f" GROUP BY ref_name, team"
 
-    # for every official, retrieve name and game results
-    for i in result:
-        # retrieve official name
-        cursor.execute(f"SELECT DISTINCT first_name, last_name FROM officials WHERE official_id={i[0]}")
-        refName = cursor.fetchall()
-
-        # query game ids associated with official
-        cursor.execute(f"SELECT game_id FROM officials WHERE official_id={i[0]}")
-        gameIDs = cursor.fetchall()
-
-        # count game records found
-        count = 0
-        game_info = []
-        for j in gameIDs:
-            # query game result information using game id
-            cursor.execute(f"SELECT team_abbreviation_home, team_abbreviation_away, wl_home, season_type FROM game WHERE game_id='{j[0]}'")
-            game_info = cursor.fetchall()
-
-            if (game_info[0][3] not in gameType):
-                continue
-
-            # iterate thru game info to tally win-loss record per team
-            # note for iter: 0 = home team, 1 = away team
-            for iter in [0,1]:
-                # search for existing record, empty if not found
-                new_rec = records.loc[(records['ref_name'] == refName[0][0] + " " + refName[0][1]) & (records['team'] == game_info[0][iter])]
-
-                # if empty, create new row
-                if (new_rec.empty):
-                    if(game_info[0][2] == 'W'):
-                        new_rec = {'ref_name': refName[0][0] + " " + refName[0][1],'team': game_info[0][iter],'W': 1,'L': 0, 'rate': 1.000}
-                    else: 
-                        new_rec = {'ref_name': refName[0][0] + " " + refName[0][1],'team': game_info[0][iter],'W': 0,'L': 1, 'rate': 0.000}
-                    
-                    # add new row to records
-                    records = pd.concat([records, pd.DataFrame([new_rec])], ignore_index=True)
-                else:
-                    if(game_info[0][2] == 'W'):
-                        new_rec.loc[:,'W'] += 1
-                    else: 
-                        new_rec.loc[:,'L'] += 1
-
-                    new_rec.loc[:,'rate'] = new_rec.loc[:,'W'] / (new_rec.loc[:,'W'] + new_rec.loc[:,'L'])
-
-                    records.loc[records.ref_name.isin(new_rec.ref_name) & records.team.isin(new_rec.team), cols] = new_rec[cols]
-
-            count = count + 1
-        if (count > 0):
-            print('[INFO] Official: {}, Game Records Logged: {}.'.format(refName[0][0] + " " + refName[0][1], count))
+    # filter out results that fall short of minimum game threshold if specified
+    if minGames is not None:
+        query += f" HAVING (W + L) >= {minGames}"
+    
+    records = pd.read_sql_query(query, conn)
+    records['rate'] = records['W'] / (records['W'] + records['L'])
 
     # write result to csv
-    records.to_csv(os.getcwd()+'\\refereeTeamRecord.csv', index = True)
+    #records.to_csv(os.getcwd()+'\\refereeTeamRecord.csv', index = True)
+
+    operationTime = time.time() - startTime
+    print('[TIMER] Referee team records created in {:.2} seconds.\n'.format(operationTime))
 
     # return dataframe
     return records
+
 
 def SortHighestRates(df,minGames,asc):
     filtered = df.query('(W + L) > '+ str(minGames))

@@ -24,9 +24,10 @@ if __name__ == '__main__':
     
     # print setup time for user
     operationTime = time.time() - startTime
-    print('[SETUP] Database setup completed in {:.2} seconds.\n'.format(operationTime))
+    print('[TIMER] Database setup completed in {:.2} seconds.\n'.format(operationTime))
 
-    referees.TeamRecordOPT(conn=connection,gameType=['reg'])
+    referees.CreateTeamRecord(conn=connection,minGames=20)
+
     #---------------------------------------
     # # create referee record csv file if non-existent or out of date 
     # if not os.path.isfile('refereeTeamRecord.csv'):
