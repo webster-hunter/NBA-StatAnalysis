@@ -3,7 +3,7 @@ from tkinter import simpledialog, Label, Entry, IntVar, Checkbutton, W, Scale, t
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
-import referees
+import methods.referees as referees
 
 class Ref:
     def __init__(self,rt,connection):
