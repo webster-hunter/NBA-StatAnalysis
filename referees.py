@@ -1,8 +1,4 @@
 import pandas as pd
-import os
-import matplotlib.pyplot as plt
-import numpy as np
-import statistics
 import datetime
 import time
 
@@ -95,52 +91,3 @@ def CreateTeamRecord(conn,startYear=None,endYear=None,gameType=None,minGames=Non
 
     # return dataframe
     return records
-
-
-def Histogram(df):
-    rates = df['rate'].to_list()
-
-    plt.hist(rates, bins=20)
-
-    plt.xlabel('Win Rate')
-    plt.ylabel('Occurrence')
-    plt.title('Team Win Rate Per Official Histogram')
-    plt.grid(True)
-
-    plt.show()
-
-def CumSumHistogram(df):
-    rates = df['rate'].to_list()
-
-    fig, ax = plt.subplots(figsize=(8, 4))
-
-    sigma = statistics.stdev(rates)
-    mu = 0.5
-    n_bins = 100
-
-    # plot the cumulative histogram
-    n, bins, patches = ax.hist(rates, n_bins, density=True, histtype='step',
-                            cumulative=True, label='Empirical')
-
-    # Add a line showing the expected distribution.
-    y = ((1 / (np.sqrt(2 * np.pi) * sigma)) *
-        np.exp(-0.5 * (1 / sigma * (bins - mu))**2))
-    y = y.cumsum()
-    y /= y[-1]
-
-    ax.plot(bins, y, 'k--', linewidth=1.5, label='Theoretical')
-
-    # tidy up the figure
-    ax.grid(True)
-    ax.legend(loc='right')
-    ax.set_title('Cumulative Step Histogram')
-    ax.set_xlabel('Team Win Rate Per Official')
-    ax.set_ylabel('Likelihood of Occurrence')
-
-    plt.show()
-
-
-
-    
-
-
