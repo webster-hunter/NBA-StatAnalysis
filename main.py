@@ -3,7 +3,7 @@ import sys
 import time
 import sqlite3
 import zipfile
-from ui.RefPage import Ref
+from interface.RefPage import Ref
 import tkinter as tk
 
 if __name__ == '__main__':
