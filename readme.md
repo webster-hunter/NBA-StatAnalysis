@@ -33,4 +33,8 @@
 <ul>
   <li>Significantly optimized Team Record algorithm</li>
   <li>Initial work began on user interface</li>
+<<<<<<< HEAD
 </ul>
+=======
+</ul>
+>>>>>>> cf552653580ffc5fc9624ce9ca5b552f6df1ce9d
