@@ -8,7 +8,7 @@ import referees
 class Ref:
     def __init__(self,rt,connection):
         root = rt
-        root.title("Referees")
+        root.title("Referees: Highest Team Win Rates")
 
         # Calculate the desired window size based on screen resolution
         screen_width = root.winfo_screenwidth()
@@ -40,26 +40,35 @@ class Ref:
         self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_columnconfigure(4, weight=1)
 
-        # Add the spacers to the grid
-        left_spacer.grid(row=0, column=0, sticky='ew')
-        right_spacer.grid(row=0, column=4, sticky='ew')
+        # create a frame for the buttons
+        self.button_frame = tk.Frame(root)
+        self.button_frame.grid(row=0, column=0, columnspan=3)
 
         # search/filter button
-        self.filter_button = Button(root, text="Search Filters", command=self.teamRecord) 
-        self.filter_button.grid(row=0, column=1, padx=10, pady=10)
+        self.filter_button = Button(self.button_frame, text="Search Filters", command=self.teamRecord, width=10, height=2) 
+        self.filter_button.grid(row=0, column=0, padx=5, pady=5)  
 
         # table display button
-        self.table_button = tk.Button(root, text="Show Table", command=self.showTable, state="disabled")
-        self.table_button.grid(row=0, column=2, padx=10, pady=10)
+        self.table_button = tk.Button(self.button_frame, text="Show Table", command=self.showTable,state="disabled", width=10, height=2)
+        self.table_button.grid(row=0, column=1, padx=5, pady=5)
 
         # histogram button
-        self.histo_button = tk.Button(root, text="Show Plot", command=self.showPlot, state="disabled")
-        self.histo_button.grid(row=0, column=3, padx=10, pady=10)
+        self.histo_button = tk.Button(self.button_frame, text="Show Plot", command=self.showPlot,state="disabled", width=10, height=2)
+        self.histo_button.grid(row=0, column=2, padx=5, pady=5)
+
+        # Placeholder frame for table
+        self.table_placeholder_frame = tk.Frame(root, width=500, height=600) # You can adjust these values
+        self.table_placeholder_frame.grid(row=1, column=0)
+
+        # Placeholder frame for plot
+        self.plot_placeholder_frame = tk.Frame(root, width=500, height=600) # You can adjust these values
+        self.plot_placeholder_frame.grid(row=2, column=0)
 
         # Frame for the plot
         self.plot_frame = tk.Frame(root)
         self.plot_frame.grid(row=0, column=1, rowspan=3)
 
+        # Frame for the table
         self.tree_frame = None
 
 
@@ -78,15 +87,18 @@ class Ref:
     def showTable(self):
         self.df = self.df.sort_values(by='rate', ascending=False)
 
+        # If table is already shown, destroy it and change the button text to "Show Table"
         if self.table_shown:
-            # If table is already shown, destroy it and change the button text to "Show Table"
             self.tree_frame.destroy()
             self.tree_frame = None
             self.table_shown = False
             self.table_button.config(text="Show Table")
 
+            # re-enable the placeholder to preserve formatting
+            self.table_placeholder_frame = tk.Frame(self.root)
+
+        # If table is not shown, create it and change the button text to "Hide Table"
         else:
-            # If table is not shown, create it and change the button text to "Hide Table"
             self.tree_frame = tk.Frame(self.root)
             self.tree_frame.grid(row=0, column=0, sticky="nsew")
 
@@ -110,14 +122,18 @@ class Ref:
 
 
     def showPlot(self):
+        # If plot is already shown, hide it and change the button text to "Show Plot"
         if self.histo_shown:
-            # If plot is already shown, hide it and change the button text to "Show Plot"
             self.plot_frame.grid_remove()
             self.histo_shown = False
             self.histo_button.config(text="Show Plot")
+
+            # re-enable the placeholder to preserve formatting
+            self.plot_placeholder_frame = tk.Frame(self.root)
+
+        # If plot is not shown, create it and change the button text to "Hide Plot"
         else:
-            # If plot is not shown, create it and change the button text to "Hide Plot"
-            fig = Figure(figsize=(10, 5), dpi=100)
+            fig = Figure(figsize=(5, 5), dpi=100)
             ax = fig.add_subplot(111)
             ax.hist(self.df['rate'], bins=25)
             ax.set_title("Histogram of Rate")
@@ -152,6 +168,8 @@ class Ref:
         # Hide all widgets
         self.tree_frame.grid_remove()
         self.plot_frame.grid_remove()
+        self.plot_placeholder_frame.grid_remove()
+        self.table_placeholder_frame.grid_remove()
 
         # Now show the widgets in the desired order
         row = 3
