@@ -44,7 +44,7 @@ def CreateTeamRecord(conn,startYear=None,endYear=None,gameType=None,minGames=Non
         # dateStart = int(dt.timestamp())
 
     # create timestamp for end date
-    if (startYear != None):
+    if (endYear != None):
         dateEnd = datetime.datetime(endYear,8,1)
         # dateEnd = int(dt.timestamp())
 
@@ -85,6 +85,7 @@ def CreateTeamRecord(conn,startYear=None,endYear=None,gameType=None,minGames=Non
     
     records = pd.read_sql_query(query, conn)
     records['rate'] = records['W'] / (records['W'] + records['L'])
+    records['rate'] = records['rate'].apply(lambda x: format(x, '.3f'))
 
     # write result to csv
     #records.to_csv(os.getcwd()+'\\refereeTeamRecord.csv', index = True)
