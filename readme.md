@@ -28,3 +28,9 @@
   <li>Enabled filtering by games officiated and win rate</li>
   <li>Initial work began on visualization</li>
 </ul>
+
+<h3>July 20, 2023:</h3>
+<ul>
+  <li>Significantly optimized Team Record algorithm</li>
+  <li>Initial work began on user interface</li>
+</ul>
