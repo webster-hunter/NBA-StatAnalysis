@@ -33,8 +33,10 @@
 <ul>
   <li>Significantly optimized Team Record algorithm</li>
   <li>Initial work began on user interface</li>
-<<<<<<< HEAD
 </ul>
-=======
+
+<h3>July 20, 2023:</h3>
+<ul>
+  <li>Dynamic formatting progress on referees application page</li>
+  <li>Various bug fixes with Team Record algorithm</li>
 </ul>
->>>>>>> cf552653580ffc5fc9624ce9ca5b552f6df1ce9d
